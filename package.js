@@ -15,10 +15,3 @@ Package.onUse(function(api) {
   api.use('ecmascript');
   api.mainModule('flow-animate-css.js');
 });
-
-Package.onTest(function(api) {
-  api.use('ecmascript');
-  api.use('tinytest');
-  api.use('flow-animate-css');
-  api.mainModule('flow-animate-css-tests.js');
-});
