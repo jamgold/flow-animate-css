@@ -2,6 +2,8 @@ Small module that works with ostrio:flow-router-extra.
 
 It overrides two methods on the client to wait for animation to finish before leaving a page.
 
+This package suplies <a href="https://daneden.github.io/animate.css/">animate.css</a>
+
 Example:
 ```
 <template name="pageOne">
