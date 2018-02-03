@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jamgold:flow-animate-css',
-  version: '0.0.1',
+  version: '0.0.2',
   // Brief, one-line summary of the package.
   summary: 'Simple module to wait for animate.css animations before changing routes',
   // URL to the Git repository containing the source code for this package.
@@ -13,7 +13,6 @@ Package.describe({
 Package.onUse(function(api) {
   api.versionsFrom('1.6');
   api.use('ecmascript');
-  api.imply('ostrio:flow-router-extra');
   api.mainModule('flow-animate-css.js');
 });
 

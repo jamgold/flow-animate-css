@@ -1,4 +1,4 @@
-Small module that works with ostrio:flow-router-extra.
+Small module that works with ostrio:flow-router-extra or kadira:flow-router.
 
 It overrides two methods on the client to wait for animation to finish before leaving a page.
 
