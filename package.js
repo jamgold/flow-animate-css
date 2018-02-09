@@ -11,7 +11,11 @@ Package.describe({
 });
 
 Package.onUse(function(api) {
+  // https://docs.meteor.com/packages/modules.html#Lazy-loading-modules-from-a-package
   api.versionsFrom('1.6');
+  // this adds the modules package
   api.use('ecmascript');
-  api.mainModule('flow-animate-css.js');
+  // we specify lazy as false so this will get imported automatically
+  // only on the client
+  api.mainModule('flow-animate-css.js','client',{lazy: false});
 });
