@@ -1,9 +1,7 @@
-// Write your package code here!
-
-// Variables exported by this module can be imported by other packages and
-// applications. See flow-animate-css-tests.js for an example of importing.
-// export const name = 'flow-animate-css';
 import './animate.css';
+import './flow-animate-css.html';
+import { Template } from 'meteor/templating';
+
 let FlowRouter;
 if (Package['ostrio:flow-router-extra']) {
   FlowRouter = Package['ostrio:flow-router-extra'].FlowRouter;
@@ -11,8 +9,14 @@ if (Package['ostrio:flow-router-extra']) {
   FlowRouter = Package['kadira:flow-router'].FlowRouter;
 }
 if (FlowRouter) {
+  //
+  // set some defaults
+  //
   FlowRouter.animationElement = 'div.animated';
   FlowRouter.animationDebug = false;
+  //
+  // define animations
+  //
   FlowRouter.animations = {
     "bounce": ['Attention Seekers'],
     "flash": ['Attention Seekers'],
@@ -78,51 +82,114 @@ if (FlowRouter) {
     "hinge": ['Specials', 'outgoing'],
   }
   //
+  // save original FlowRouter._page functions
+  //
+  const FlowRouterShow = FlowRouter._page.show;
+  const FlowRouterRedirect = FlowRouter._page.redirect;
+  //
   // https://github.com/kadirahq/flow-router/issues/318
   //
-  function wrapRouting(original) {
+  const flowAnimateCSS = function flowAnimateCSS(original) {
     return (...args) => {
       //
       // look for a single FlowRouter.animationElement
       //
-      let flowAnimation = $(FlowRouter.animationElement).first();
-      if (flowAnimation.length == 1) {
+      // let flowAnimation = $(FlowRouter.animationElement).first();
+      const flowAnimation = document.querySelector(FlowRouter.animationElement);
+      if (flowAnimation) {
+        //
+        // define animationEnd event handler
+        //
+        const animationEnd = function(event) {
+          const callOriginal = event.target == flowAnimation;
+          // finish route if it is for the FlowRouter.animationElement
+          if (callOriginal) {
+            // remove eventHandler
+            event.target.removeEventListener('animationend', animationEnd);
+            // remove the animation className
+            event.target.classList.remove(event.animationName);
+            if (FlowRouter.animationDebug === true) console.debug(`flow-animate-css ${event.animationName} finished ${event.target.nodeName} ${callOriginal}`);
+
+            original.apply(null, args);
+          }
+        }
+        if (FlowRouter.animationDebug) console.debug(`flow-animate-css ${args[0]} ${flowAnimation.className}`, flowAnimation);
         //
         // determine the animationOut
         //
-        let animationOut = flowAnimation[0].dataset.animationOut;
-        if (animationOut === undefined) animationOut = 'slideOutLeft';
-        if (FlowRouter.animations[animationOut] === undefined) animationOut = 'slideOutLeft';
-        //
-        // attach event listener
-        //
-        flowAnimation.one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend",
-          function(event) {
-            if (FlowRouter.animationDebug === true) console.debug(`flow-animate-css ${animationOut} finished`);
-            // finish route
-            return original.apply(null, args);
-          }
-        );
+        let animationOut = flowAnimation.dataset.animationOut;
+        if (animationOut && FlowRouter.animations[animationOut] === undefined) animationOut = 'slideOutLeft';
+        if (animationOut) {
+          //
+          // attach event listener
+          //
+          flowAnimation.addEventListener('animationend', animationEnd);
+          //
+          // add animationOut class
+          //
+          flowAnimation.classList.add(animationOut);
+        } else {
+          if(FlowRouter.animationDebug) console.debug('flow-animate-css no animationOut');
+          original.apply(null, args);
+        }
         //
         // remove previous animation
         //
-        for (let a of flowAnimation[0].classList) {
-          if (FlowRouter.animations[a]) flowAnimation[0].classList.remove(a);
-        }
+        // for (let a of flowAnimation.classList) {
+        //   // is the class part of the animation names
+        //   if (FlowRouter.animations[a]) flowAnimation.classList.remove(a);
+        // }
         //
         // add animationOut class
         //
-        flowAnimation[0].classList.add(animationOut);
+        // if(animationOut) {
+        //   flowAnimation.classList.add(animationOut);
+        // } else {
+        //   if(FlowRouter.animationDebug) console.debug('flow-animate-css no animationOut');
+        //   original.apply(null, args);
+        // }
       } else {
-        if (FlowRouter.animationDebug)
-          console.debug(`flow-animate-css did not find element ${FlowRouter.animationElement}`)
-        return original.apply(null, args);
+        if (FlowRouter.animationDebug) console.debug(`flow-animate-css did not find element ${FlowRouter.animationElement}`)
+        original.apply(null, args);
       }
     }
   }
   //
   // overwrite these two functions in FlowRouter
   //
-  FlowRouter._page.redirect = wrapRouting(FlowRouter._page.redirect);
-  FlowRouter._page.show = wrapRouting(FlowRouter._page.show);
+  FlowRouter._page.redirect = flowAnimateCSS(FlowRouterRedirect);
+  FlowRouter._page.show = flowAnimateCSS(FlowRouterShow);
 }
+
+Template.animatedRoute.onCreated(function() {
+  const instance = this;
+  //
+  // check for route animations
+  //
+  instance.animation = FlowRouter.current().route.options.animation;
+  if (!instance.animation) {
+    instance.animation = {};
+  }
+  //
+  // check for explicit animation names in the template call
+  //
+  if(instance.data.animationIn) instance.animation.in = instance.data.animationIn;
+  if(instance.data.animationOut) instance.animation.out = instance.data.animationOut;
+});
+Template.animatedRoute.onRendered(function() {
+  const instance = this;
+  if (FlowRouter.animationDebug) console.debug(`${instance.view.name}.onRendered`, instance.animation);
+});
+Template.animatedRoute.onDestroyed(function() {
+  const instance = this;
+});
+Template.animatedRoute.helpers({
+  in() {
+    const instance=Template.instance();
+    return instance.animation && 'in' in instance.animation ? `${instance.animation.in}` : '';
+  },
+  out() {
+    const instance = Template.instance();
+    return instance.animation && 'out' in instance.animation ? instance.animation.out : '';
+  }
+});

@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jamgold:flow-animate-css',
-  version: '0.0.2',
+  version: '0.0.4_2',
   // Brief, one-line summary of the package.
   summary: 'Simple module to wait for animate.css animations before changing routes',
   // URL to the Git repository containing the source code for this package.
@@ -14,7 +14,7 @@ Package.onUse(function(api) {
   // https://docs.meteor.com/packages/modules.html#Lazy-loading-modules-from-a-package
   api.versionsFrom('1.6');
   // this adds the modules package
-  api.use('ecmascript');
+  api.use(['ecmascript','templating'], 'client');
   // we specify lazy as false so this will get imported automatically
   // only on the client
   api.mainModule('flow-animate-css.js','client',{lazy: false});
