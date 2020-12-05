@@ -14,7 +14,7 @@ Package.onUse(function(api) {
   // https://docs.meteor.com/packages/modules.html#Lazy-loading-modules-from-a-package
   api.versionsFrom('1.6');
   // this adds the modules package
-  api.use(['ecmascript','templating'], 'client');
+  api.use(['ecmascript@0.10.2','templating@1.3.2'], 'client');
   // we specify lazy as false so this will get imported automatically
   // only on the client
   api.mainModule('flow-animate-css.js','client',{lazy: false});
